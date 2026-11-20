@@ -31,6 +31,23 @@ API do projeto acadêmico SíndicoDigital.
 
 A conexão PostgreSQL é configurada pela variável `DATABASE_URL`. Nenhuma URL ou credencial deve ser adicionada ao código ou enviada ao GitHub. Confirme com a equipe qual provedor PostgreSQL será usado antes de preencher a variável.
 
+Consulte o [modelo de dados](docs/modelo-banco.md) para ver as tabelas, as chaves e o diagrama de relacionamentos.
+
+### Migrations e dados fictícios
+
+Com as dependências instaladas e `DATABASE_URL` apontando para um banco de desenvolvimento ou teste, execute:
+
+```sh
+npm run db:migrate
+npm run db:seed
+```
+
+O primeiro comando aplica os arquivos SQL de `database/migrations` em ordem de nome e registra as migrations aplicadas em `schema_migrations`. Para evoluir o esquema, adicione um arquivo com o próximo prefixo numérico. Cada execução aplica as migrations pendentes em uma transação.
+
+O segundo comando carrega dados fictícios a partir de `database/seeds` e pode ser repetido sem duplicar registros. Ele é bloqueado quando `NODE_ENV=production`.
+
+O modelo inicial inclui 2 condomínios, 4 unidades, 3 moradores e 5 vínculos entre moradores e unidades. Cada condomínio tem duas unidades. O seed inclui um morador vinculado a mais de uma unidade e uma unidade vinculada a mais de um morador.
+
 ## Segurança
 
 Nunca publique o arquivo `.env` nem credenciais ou strings de conexão.
