@@ -7,7 +7,7 @@ API do projeto acadêmico SíndicoDigital.
 - Node.js 22 LTS
 - Express
 - JavaScript (ES modules)
-- PostgreSQL com `pg`
+- PostgreSQL com `pg`, hospedado no [Neon](https://neon.tech)
 
 ## Requisitos
 
@@ -29,7 +29,13 @@ API do projeto acadêmico SíndicoDigital.
 
 ## Banco de dados
 
-A conexão PostgreSQL é configurada pela variável `DATABASE_URL`. Nenhuma URL ou credencial deve ser adicionada ao código ou enviada ao GitHub. Confirme com a equipe qual provedor PostgreSQL será usado antes de preencher a variável.
+O provedor PostgreSQL do projeto é o [Neon](https://neon.tech), na região AWS São Paulo (`sa-east-1`). A equipe usa um único banco compartilhado. Peça a connection string a quem administra o projeto no Neon, por um canal privado.
+
+A conexão é configurada pela variável `DATABASE_URL`. Nenhuma URL ou credencial deve ser adicionada ao código ou enviada ao GitHub. Use a connection string com `sslmode=verify-full`, que exige conexão criptografada e verifica o certificado do servidor:
+
+```
+DATABASE_URL=postgresql://USUARIO:SENHA@HOST.sa-east-1.aws.neon.tech/neondb?sslmode=verify-full&channel_binding=require
+```
 
 Consulte o [modelo de dados](docs/modelo-banco.md) para ver as tabelas, as chaves e o diagrama de relacionamentos.
 
