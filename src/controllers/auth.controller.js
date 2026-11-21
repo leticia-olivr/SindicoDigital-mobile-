@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { revogarToken } from '../services/tokens.service.js';
 import { buscarParaLogin, criarUsuario } from '../services/usuarios.service.js';
 import { HttpError } from '../utils/http-error.js';
 import { gerarToken } from '../utils/token.js';
@@ -30,4 +31,13 @@ export async function login(req, res) {
 
   const { senha_hash, ...dadosPublicos } = usuario;
   res.status(200).json({ token: gerarToken(usuario), usuario: dadosPublicos });
+}
+
+export function me(req, res) {
+  res.status(200).json(req.usuario);
+}
+
+export async function logout(req, res) {
+  await revogarToken(req.token.jti, req.token.exp);
+  res.status(204).end();
 }

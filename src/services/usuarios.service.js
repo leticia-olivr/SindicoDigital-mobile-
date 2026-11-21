@@ -20,6 +20,16 @@ export async function criarUsuario({ nome, email, senhaHash }) {
   }
 }
 
+export async function buscarPorTokenValido(id, jti) {
+  const { rows } = await pool.query(
+    `SELECT ${CAMPOS_PUBLICOS} FROM usuarios
+     WHERE id = $1
+       AND NOT EXISTS (SELECT 1 FROM tokens_revogados WHERE jti = $2)`,
+    [id, jti]
+  );
+  return rows[0];
+}
+
 export async function buscarParaLogin(email) {
   const { rows } = await pool.query(
     `SELECT ${CAMPOS_PUBLICOS}, senha_hash FROM usuarios WHERE email = $1`,
