@@ -63,6 +63,44 @@ O segundo comando carrega dados fictícios a partir de `database/seeds` e pode s
 
 O modelo inicial inclui 2 condomínios, 4 unidades, 3 moradores e 5 vínculos entre moradores e unidades. Cada condomínio tem duas unidades. O seed inclui um morador vinculado a mais de uma unidade e uma unidade vinculada a mais de um morador.
 
+O seed também cria 4 usuários de demonstração. Todos usam a senha `Demo@123`:
+
+| E-mail | Tipo |
+|---|---|
+| `admin@sindicodigital.test` | `ADMIN` |
+| `sindica@sindicodigital.test` | `SINDICO` |
+| `morador1@sindicodigital.test` | `MORADOR` |
+| `morador2@sindicodigital.test` | `MORADOR` |
+
+## Autenticação
+
+A API usa JWT. Configure no `.env` as variáveis `JWT_SECRET`, com um valor longo e aleatório, e `JWT_EXPIRES_IN`, que define a validade do token (padrão `1h`). Para gerar um segredo:
+
+```sh
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+```
+
+Faça login e envie o token recebido no cabeçalho `Authorization: Bearer <token>` de cada requisição. Todas as rotas exigem token, exceto `POST /auth/signup` e `POST /auth/login`.
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/auth/signup` | Cadastra um usuário do tipo `MORADOR`. Corpo: `nome`, `email`, `senha` |
+| `POST` | `/auth/login` | Retorna `token` e `usuario`. Corpo: `email`, `senha` |
+| `GET` | `/auth/me` | Retorna o usuário autenticado |
+| `POST` | `/auth/logout` | Revoga o token atual |
+
+## Usuários
+
+| Método | Rota | Permissão |
+|---|---|---|
+| `GET` | `/usuarios` | `SINDICO` e `ADMIN` |
+| `POST` | `/usuarios` | `SINDICO` e `ADMIN`. Somente `ADMIN` cria usuários `SINDICO` ou `ADMIN` |
+| `GET` | `/usuarios/:id` | O próprio usuário, `SINDICO` e `ADMIN` |
+| `PUT` | `/usuarios/:id` | O próprio usuário, `SINDICO` e `ADMIN`. Somente `ADMIN` altera o campo `tipo`. `SINDICO` não altera dados de `ADMIN` |
+| `DELETE` | `/usuarios/:id` | `SINDICO` e `ADMIN`. `SINDICO` não exclui `ADMIN` |
+
+No `PUT`, envie apenas os campos que serão alterados: `nome`, `email`, `senha` ou `tipo`.
+
 ## Segurança
 
 Nunca publique o arquivo `.env` nem credenciais ou strings de conexão.
