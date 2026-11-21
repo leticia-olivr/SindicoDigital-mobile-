@@ -20,8 +20,9 @@ API do projeto acadêmico SíndicoDigital.
 1. Clone o repositório.
 2. Execute `npm install`.
 3. Copie `.env.example` para `.env`.
-4. Preencha as variáveis localmente, quando houver um banco PostgreSQL provisionado.
-5. Execute `npm run dev`.
+4. Preencha `DATABASE_URL` com a connection string do banco Neon da equipe.
+5. Execute `npm run db:check` para testar a conexão.
+6. Execute `npm run dev`.
 
 ## Verificação
 
@@ -36,6 +37,14 @@ A conexão é configurada pela variável `DATABASE_URL`. Nenhuma URL ou credenci
 ```
 DATABASE_URL=postgresql://USUARIO:SENHA@HOST.sa-east-1.aws.neon.tech/neondb?sslmode=verify-full&channel_binding=require
 ```
+
+### Teste de conexão
+
+```sh
+npm run db:check
+```
+
+O comando conecta ao banco e exibe o nome do banco e a versão do PostgreSQL. Em caso de falha, ele mostra o motivo, como `DATABASE_URL` ausente ou credenciais inválidas.
 
 Consulte o [modelo de dados](docs/modelo-banco.md) para ver as tabelas, as chaves e o diagrama de relacionamentos.
 
