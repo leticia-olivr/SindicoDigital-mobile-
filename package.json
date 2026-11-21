@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "db:check": "node database/check.js",
     "db:migrate": "node database/run.js migrations",
     "db:seed": "node database/run.js seeds"
   },
