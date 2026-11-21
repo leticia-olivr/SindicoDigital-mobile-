@@ -7,7 +7,7 @@ API do projeto acadêmico SíndicoDigital.
 - Node.js 22 LTS
 - Express
 - JavaScript (ES modules)
-- PostgreSQL com `pg`
+- PostgreSQL com `pg`, hospedado no [Neon](https://neon.tech)
 
 ## Requisitos
 
@@ -20,8 +20,9 @@ API do projeto acadêmico SíndicoDigital.
 1. Clone o repositório.
 2. Execute `npm install`.
 3. Copie `.env.example` para `.env`.
-4. Preencha as variáveis localmente, quando houver um banco PostgreSQL provisionado.
-5. Execute `npm run dev`.
+4. Preencha `DATABASE_URL` com a connection string do banco Neon da equipe.
+5. Execute `npm run db:check` para testar a conexão.
+6. Execute `npm run dev`.
 
 ## Verificação
 
@@ -29,7 +30,21 @@ API do projeto acadêmico SíndicoDigital.
 
 ## Banco de dados
 
-A conexão PostgreSQL é configurada pela variável `DATABASE_URL`. Nenhuma URL ou credencial deve ser adicionada ao código ou enviada ao GitHub. Confirme com a equipe qual provedor PostgreSQL será usado antes de preencher a variável.
+O provedor PostgreSQL do projeto é o [Neon](https://neon.tech), na região AWS São Paulo (`sa-east-1`). A equipe usa um único banco compartilhado. Peça a connection string a quem administra o projeto no Neon, por um canal privado.
+
+A conexão é configurada pela variável `DATABASE_URL`. Nenhuma URL ou credencial deve ser adicionada ao código ou enviada ao GitHub. Use a connection string com `sslmode=verify-full`, que exige conexão criptografada e verifica o certificado do servidor:
+
+```
+DATABASE_URL=postgresql://USUARIO:SENHA@HOST.sa-east-1.aws.neon.tech/neondb?sslmode=verify-full&channel_binding=require
+```
+
+### Teste de conexão
+
+```sh
+npm run db:check
+```
+
+O comando conecta ao banco e exibe o nome do banco e a versão do PostgreSQL. Em caso de falha, ele mostra o motivo, como `DATABASE_URL` ausente ou credenciais inválidas.
 
 Consulte o [modelo de dados](docs/modelo-banco.md) para ver as tabelas, as chaves e o diagrama de relacionamentos.
 
@@ -47,6 +62,44 @@ O primeiro comando aplica os arquivos SQL de `database/migrations` em ordem de n
 O segundo comando carrega dados fictícios a partir de `database/seeds` e pode ser repetido sem duplicar registros. Ele é bloqueado quando `NODE_ENV=production`.
 
 O modelo inicial inclui 2 condomínios, 4 unidades, 3 moradores e 5 vínculos entre moradores e unidades. Cada condomínio tem duas unidades. O seed inclui um morador vinculado a mais de uma unidade e uma unidade vinculada a mais de um morador.
+
+O seed também cria 4 usuários de demonstração. Todos usam a senha `Demo@123`:
+
+| E-mail | Tipo |
+|---|---|
+| `admin@sindicodigital.test` | `ADMIN` |
+| `sindica@sindicodigital.test` | `SINDICO` |
+| `morador1@sindicodigital.test` | `MORADOR` |
+| `morador2@sindicodigital.test` | `MORADOR` |
+
+## Autenticação
+
+A API usa JWT. Configure no `.env` as variáveis `JWT_SECRET`, com um valor longo e aleatório, e `JWT_EXPIRES_IN`, que define a validade do token (padrão `1h`). Para gerar um segredo:
+
+```sh
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+```
+
+Faça login e envie o token recebido no cabeçalho `Authorization: Bearer <token>` de cada requisição. Todas as rotas exigem token, exceto `POST /auth/signup` e `POST /auth/login`.
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/auth/signup` | Cadastra um usuário do tipo `MORADOR`. Corpo: `nome`, `email`, `senha` |
+| `POST` | `/auth/login` | Retorna `token` e `usuario`. Corpo: `email`, `senha` |
+| `GET` | `/auth/me` | Retorna o usuário autenticado |
+| `POST` | `/auth/logout` | Revoga o token atual |
+
+## Usuários
+
+| Método | Rota | Permissão |
+|---|---|---|
+| `GET` | `/usuarios` | `SINDICO` e `ADMIN` |
+| `POST` | `/usuarios` | `SINDICO` e `ADMIN`. Somente `ADMIN` cria usuários `SINDICO` ou `ADMIN` |
+| `GET` | `/usuarios/:id` | O próprio usuário, `SINDICO` e `ADMIN` |
+| `PUT` | `/usuarios/:id` | O próprio usuário, `SINDICO` e `ADMIN`. Somente `ADMIN` altera o campo `tipo`. `SINDICO` não altera dados de `ADMIN` |
+| `DELETE` | `/usuarios/:id` | `SINDICO` e `ADMIN`. `SINDICO` não exclui `ADMIN` |
+
+No `PUT`, envie apenas os campos que serão alterados: `nome`, `email`, `senha` ou `tipo`.
 
 ## Segurança
 
