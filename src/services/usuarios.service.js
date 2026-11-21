@@ -19,3 +19,11 @@ export async function criarUsuario({ nome, email, senhaHash }) {
     throw error;
   }
 }
+
+export async function buscarParaLogin(email) {
+  const { rows } = await pool.query(
+    `SELECT ${CAMPOS_PUBLICOS}, senha_hash FROM usuarios WHERE email = $1`,
+    [email]
+  );
+  return rows[0];
+}
