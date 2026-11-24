@@ -8,7 +8,18 @@ const SELECT_COMUNICADO = `
 
 export async function listarComunicados() {
   const { rows } = await pool.query(
-    `${SELECT_COMUNICADO} ORDER BY c.criado_em DESC, c.id DESC`
+    `${SELECT_COMUNICADO}
+     ORDER BY c.criado_em DESC, c.id DESC`
+  );
+  return rows;
+}
+
+export async function listarComunicadosPorUsuario(usuarioId) {
+  const { rows } = await pool.query(
+    `${SELECT_COMUNICADO}
+     WHERE c.autor_id = $1
+     ORDER BY c.criado_em DESC, c.id DESC`,
+    [usuarioId]
   );
   return rows;
 }

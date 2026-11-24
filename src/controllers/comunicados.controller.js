@@ -1,11 +1,15 @@
+
 import {
   atualizarComunicado,
   buscarComunicadoPorId,
   criarComunicado,
   excluirComunicado,
-  listarComunicados
+  listarComunicados,
+  listarComunicadosPorUsuario
 } from '../services/comunicados.service.js';
+
 import { HttpError } from '../utils/http-error.js';
+
 import {
   validarAtualizacaoComunicado,
   validarCriacaoComunicado
@@ -20,7 +24,16 @@ function lerId(req) {
 }
 
 export async function listar(req, res) {
-  res.status(200).json(await listarComunicados());
+  const comunicados = await listarComunicados();
+  res.status(200).json(comunicados);
+}
+
+export async function listarPorUsuario(req, res) {
+  const comunicados = await listarComunicadosPorUsuario(
+    req.usuario.id
+  );
+
+  res.status(200).json(comunicados);
 }
 
 export async function buscar(req, res) {
