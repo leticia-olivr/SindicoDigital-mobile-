@@ -86,10 +86,23 @@ export async function atualizarComunicado(id, campos, usuario) {
   return buscarComunicadoPorId(id);
 }
 
-export async function excluirComunicado(id) {
+export async function excluirComunicado(id, usuario) {
+  const comunicado = await buscarComunicadoPorId(id);
+
+  if (!comunicado) return false;
+
+  const podeExcluir =
+    usuario.tipo === 'ADMIN' ||
+    Number(comunicado.autor_id) === Number(usuario.id);
+
+  if (!podeExcluir) {
+    return null;
+  }
+
   const { rowCount } = await pool.query(
     'DELETE FROM comunicados WHERE id = $1',
     [id]
   );
+
   return rowCount > 0;
 }

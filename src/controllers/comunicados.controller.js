@@ -79,9 +79,21 @@ export async function atualizar(req, res) {
 }
 
 export async function excluir(req, res) {
-  const excluido = await excluirComunicado(lerId(req));
-  if (!excluido) {
+  const excluido = await excluirComunicado(
+    lerId(req),
+    req.usuario
+  );
+
+  if (excluido === false) {
     throw new HttpError(404, 'Comunicado não encontrado.');
   }
+
+  if (excluido === null) {
+    throw new HttpError(
+      403,
+      'Você não tem permissão para excluir este comunicado.'
+    );
+  }
+
   res.status(204).end();
 }
