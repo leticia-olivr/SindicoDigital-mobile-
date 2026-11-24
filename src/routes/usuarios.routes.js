@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import {
   atualizar,
   buscar,
@@ -6,6 +6,7 @@ import {
   excluir,
   listar
 } from '../controllers/usuarios.controller.js';
+import { listarMinhasUnidades } from '../controllers/unidades.controller.js';
 import { autenticar } from '../middlewares/auth.middleware.js';
 import { exigirTipo } from '../middlewares/tipo.middleware.js';
 
@@ -16,6 +17,7 @@ router.use(autenticar);
 
 router.get('/', somenteGestores, listar);
 router.post('/', somenteGestores, criar);
+router.get('/me/unidades', exigirTipo('MORADOR'), listarMinhasUnidades);
 router.get('/:id', buscar);
 router.put('/:id', atualizar);
 router.delete('/:id', somenteGestores, excluir);
