@@ -57,10 +57,24 @@ export async function criar(req, res) {
 export async function atualizar(req, res) {
   const id = lerId(req);
   const campos = validarAtualizacaoComunicado(req.body);
-  const comunicado = await atualizarComunicado(id, campos);
-  if (!comunicado) {
+
+  const comunicado = await atualizarComunicado(
+    id,
+    campos,
+    req.usuario
+  );
+
+  if (comunicado === undefined) {
     throw new HttpError(404, 'Comunicado não encontrado.');
   }
+
+  if (comunicado === null) {
+    throw new HttpError(
+      403,
+      'Você não tem permissão para editar este comunicado.'
+    );
+  }
+
   res.status(200).json(comunicado);
 }
 

@@ -47,7 +47,19 @@ const COLUNAS_EDITAVEIS = {
   conteudo: 'conteudo'
 };
 
-export async function atualizarComunicado(id, campos) {
+export async function atualizarComunicado(id, campos, usuario) {
+  const comunicado = await buscarComunicadoPorId(id);
+
+  if (!comunicado) return undefined;
+
+  const podeEditar =
+    usuario.tipo === 'ADMIN' ||
+    Number(comunicado.autor_id) === Number(usuario.id);
+
+  if (!podeEditar) {
+    return null;
+  }
+
   const sets = [];
   const valores = [];
   for (const [campo, coluna] of Object.entries(COLUNAS_EDITAVEIS)) {
@@ -56,15 +68,21 @@ export async function atualizarComunicado(id, campos) {
       sets.push(`${coluna} = $${valores.length}`);
     }
   }
+
+  if (sets.length === 0) {
+    return comunicado;
+  }
+
   sets.push('atualizado_em = now()');
   valores.push(id);
 
-  const { rowCount } = await pool.query(
-    `UPDATE comunicados SET ${sets.join(', ')}
+  await pool.query(
+    `UPDATE comunicados
+     SET ${sets.join(', ')}
      WHERE id = $${valores.length}`,
     valores
   );
-  if (rowCount === 0) return undefined;
+
   return buscarComunicadoPorId(id);
 }
 
