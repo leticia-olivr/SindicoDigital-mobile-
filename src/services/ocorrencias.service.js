@@ -143,3 +143,29 @@ export async function listarOcorrenciasPermitidas(ator) {
 
   throw new HttpError(403, 'Usuário sem permissão para listar ocorrências.');
 }
+export async function consultarOcorrenciaPorId(ocorrenciaId, ator) {
+  const { rows } = await pool.query(
+    `SELECT
+       o.*,
+       c.nome AS categoria_nome,
+       u.bloco,
+       u.numero AS unidade_numero,
+       usr.nome AS usuario_nome
+     FROM ocorrencias o
+     JOIN categorias_ocorrencias c ON c.id = o.categoria_id
+     JOIN unidades u ON u.id = o.unidade_id
+     JOIN usuarios usr ON usr.id = o.usuario_id
+     WHERE o.id = $1`,
+    [ocorrenciaId]
+  );
+
+  const ocorrencia = rows[0];
+
+  if (!ocorrencia) {
+    throw new HttpError(404, 'Ocorrência não encontrada.');
+  }
+
+  await validarAcessoUnidade(ocorrencia.unidade_id, ator);
+
+  return ocorrencia;
+}
