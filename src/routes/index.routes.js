@@ -4,6 +4,7 @@ import usuariosRoutes from './usuarios.routes.js';
 import sindicosRoutes from './sindicos.routes.js';
 import unidadesRoutes from './unidades.routes.js';
 import categoriasRoutes from './categorias.routes.js';
+import ocorrenciasRoutes from './ocorrencias.routes.js';
 
 const router = Router();
 
@@ -19,5 +20,6 @@ router.use('/usuarios', usuariosRoutes);
 router.use('/sindicos', sindicosRoutes);
 router.use('/unidades', unidadesRoutes);
 router.use('/categorias', categoriasRoutes);
+router.use('/ocorrencias', ocorrenciasRoutes);
 
 export default router;
