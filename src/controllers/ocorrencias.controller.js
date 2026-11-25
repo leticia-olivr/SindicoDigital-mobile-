@@ -1,6 +1,7 @@
 import { registrarOcorrencia as salvarOcorrencia, 
   listarOcorrenciasPermitida, 
-  consultarOcorrenciaPorId 
+  consultarOcorrenciaPorId,
+  atualizarOcorrencia
 } from '../services/ocorrencias.service.js';
 import { HttpError } from '../utils/http-error.js';
 
@@ -57,4 +58,37 @@ export async function consultarOcorrencia(req, res) {
   );
 
   return res.status(200).json({ ocorrencia });
+}
+
+export async function atualizarOcorrenciaController(req, res) {
+  const ocorrenciaId = validarId(req.params.id, 'ID da ocorrência');
+
+  const { titulo, descricao, status } = req.body;
+
+  if (
+    titulo === undefined &&
+    descricao === undefined &&
+    status === undefined
+  ) {
+    throw new HttpError(400, 'Informe ao menos um campo para atualizar.');
+  }
+
+  if (titulo !== undefined && (typeof titulo !== 'string' || !titulo.trim())) {
+    throw new HttpError(400, 'O título não pode ser vazio.');
+  }
+
+  if (descricao !== undefined && (typeof descricao !== 'string' || !descricao.trim())) {
+    throw new HttpError(400, 'A descrição não pode ser vazia.');
+  }
+
+  const ocorrencia = await atualizarOcorrencia(
+    ocorrenciaId,
+    { titulo, descricao, status },
+    req.usuario
+  );
+
+  return res.status(200).json({
+    message: 'Ocorrência atualizada com sucesso.',
+    ocorrencia
+  });
 }

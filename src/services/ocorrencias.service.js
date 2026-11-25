@@ -169,3 +169,38 @@ export async function consultarOcorrenciaPorId(ocorrenciaId, ator) {
 
   return ocorrencia;
 }
+
+export async function atualizarOcorrencia(
+  ocorrenciaId,
+  dados,
+  ator
+) {
+  const ocorrenciaAtual = await consultarOcorrenciaPorId(
+    ocorrenciaId,
+    ator
+  );
+
+  const titulo = dados.titulo ?? ocorrenciaAtual.titulo;
+  const descricao = dados.descricao ?? ocorrenciaAtual.descricao;
+  const status = dados.status ?? ocorrenciaAtual.status;
+
+  const statusValidos = ['ABERTA', 'EM_ANDAMENTO', 'CONCLUIDA'];
+
+  if (!statusValidos.includes(status)) {
+    throw new HttpError(400, 'Status de ocorrência inválido.');
+  }
+
+  const { rows } = await pool.query(
+    `UPDATE ocorrencias
+     SET titulo = $1,
+         descricao = $2,
+         status = $3,
+         atualizado_em = now()
+     WHERE id = $4
+     RETURNING id, usuario_id, unidade_id, categoria_id,
+               titulo, descricao, status, criado_em, atualizado_em`,
+    [titulo, descricao, status, ocorrenciaId]
+  );
+
+  return rows[0];
+}
