@@ -1,4 +1,4 @@
-import { criarCategoria as salvarCategoria } from '../services/categorias.service.js';
+import { criarCategoria as salvarCategoria, buscarCategoriaPorId } from '../services/categorias.service.js';
 import { HttpError } from '../utils/http-error.js';
 
 export async function criarCategoria(req, res) {
@@ -25,4 +25,16 @@ import { listarCategorias as buscarCategorias } from '../services/categorias.ser
 export async function listarCategorias(req, res) {
   const categorias = await buscarCategorias();
   res.status(200).json(categorias);
+}
+
+export async function consultarCategoriaPorId(req, res) {
+  const { id } = req.params;
+
+  if (!/^\d+$/.test(id) || Number(id) <= 0) {
+    throw new HttpError(400, 'O ID da categoria deve ser um número inteiro positivo.');
+  }
+
+  const categoria = await buscarCategoriaPorId(id);
+
+  res.status(200).json(categoria);
 }

@@ -28,3 +28,18 @@ export async function listarCategorias() {
 
   return rows;
 }
+
+export async function buscarCategoriaPorId(id) {
+  const { rows } = await pool.query(
+    `SELECT id, nome, descricao, criado_em
+     FROM categorias_ocorrencias
+     WHERE id = $1`,
+    [id]
+  );
+
+  if (!rows[0]) {
+    throw new HttpError(404, 'Categoria não encontrada.');
+  }
+
+  return rows[0];
+}
