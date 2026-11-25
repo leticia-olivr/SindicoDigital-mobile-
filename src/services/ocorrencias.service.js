@@ -76,3 +76,70 @@ export async function registrarOcorrencia(
 
   return rows[0];
 }
+
+export async function listarOcorrenciasPermitidas(ator) {
+  let query;
+
+  if (ator.tipo === 'ADMIN') {
+    query = `
+      SELECT
+        o.*,
+        c.nome AS categoria_nome,
+        u.bloco,
+        u.numero AS unidade_numero,
+        usr.nome AS usuario_nome
+      FROM ocorrencias o
+      JOIN categorias_ocorrencias c ON c.id = o.categoria_id
+      JOIN unidades u ON u.id = o.unidade_id
+      JOIN usuarios usr ON usr.id = o.usuario_id
+      ORDER BY o.criado_em DESC
+    `;
+
+    const resultado = await pool.query(query);
+    return resultado.rows;
+  }
+
+  if (ator.tipo === 'MORADOR') {
+    query = `
+      SELECT
+        o.*,
+        c.nome AS categoria_nome,
+        u.bloco,
+        u.numero AS unidade_numero,
+        usr.nome AS usuario_nome
+      FROM ocorrencias o
+      JOIN categorias_ocorrencias c ON c.id = o.categoria_id
+      JOIN unidades u ON u.id = o.unidade_id
+      JOIN usuarios usr ON usr.id = o.usuario_id
+      JOIN usuarios_unidades uu ON uu.unidade_id = o.unidade_id
+      WHERE uu.usuario_id = $1
+      ORDER BY o.criado_em DESC
+    `;
+
+    const resultado = await pool.query(query, [ator.id]);
+    return resultado.rows;
+  }
+
+  if (ator.tipo === 'SINDICO') {
+    query = `
+      SELECT
+        o.*,
+        c.nome AS categoria_nome,
+        u.bloco,
+        u.numero AS unidade_numero,
+        usr.nome AS usuario_nome
+      FROM ocorrencias o
+      JOIN categorias_ocorrencias c ON c.id = o.categoria_id
+      JOIN unidades u ON u.id = o.unidade_id
+      JOIN usuarios usr ON usr.id = o.usuario_id
+      JOIN sindicos_condominios sc ON sc.condominio_id = u.condominio_id
+      WHERE sc.sindico_id = $1
+      ORDER BY o.criado_em DESC
+    `;
+
+    const resultado = await pool.query(query, [ator.id]);
+    return resultado.rows;
+  }
+
+  throw new HttpError(403, 'Usuário sem permissão para listar ocorrências.');
+}

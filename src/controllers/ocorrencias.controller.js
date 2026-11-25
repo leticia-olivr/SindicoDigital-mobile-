@@ -1,4 +1,4 @@
-import { registrarOcorrencia as salvarOcorrencia } from '../services/ocorrencias.service.js';
+import { registrarOcorrencia as salvarOcorrencia,listarOcorrenciasPermitidas } from '../services/ocorrencias.service.js';
 import { HttpError } from '../utils/http-error.js';
 
 function validarId(valor, campo) {
@@ -33,5 +33,14 @@ export async function registrarOcorrencia(req, res) {
   res.status(201).json({
     message: 'Ocorrência registrada com sucesso.',
     ocorrencia
+  });
+}
+
+export async function listarOcorrencias(req, res) {
+  const ocorrencias = await listarOcorrenciasPermitidas(req.usuario);
+
+  return res.status(200).json({
+    total: ocorrencias.length,
+    ocorrencias
   });
 }
