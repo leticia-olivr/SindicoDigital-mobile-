@@ -1,4 +1,3 @@
-
 -- Relaciona usuários MORADOR aos seus respectivos cadastros de moradores.
 ALTER TABLE moradores
 ADD COLUMN usuario_id bigint UNIQUE
