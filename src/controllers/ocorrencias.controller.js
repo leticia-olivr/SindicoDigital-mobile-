@@ -1,5 +1,5 @@
 import { registrarOcorrencia as salvarOcorrencia, 
-  listarOcorrenciasPermitida, 
+  listarOcorrenciasPermitidas, 
   consultarOcorrenciaPorId,
   atualizarOcorrencia,
   excluirOcorrencia
@@ -10,6 +10,8 @@ function validarId(valor, campo) {
   if (!/^[1-9]\d*$/.test(String(valor ?? ''))) {
     throw new HttpError(400, `O ${campo} deve ser um número inteiro positivo.`);
   }
+
+  return String(valor);
 }
 
 export async function registrarOcorrencia(req, res) {

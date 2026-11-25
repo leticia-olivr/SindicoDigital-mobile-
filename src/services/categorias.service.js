@@ -68,14 +68,29 @@ export async function atualizarCategoria(id, nome, descricao) {
 }
 
 export async function excluirCategoria(id) {
-  const { rows } = await pool.query(
-    `DELETE FROM categorias_ocorrencias
-     WHERE id = $1
-     RETURNING id`,
-    [id]
-  );
+  try {
+    const { rows } = await pool.query(
+      `DELETE FROM categorias_ocorrencias
+       WHERE id = $1
+       RETURNING id`,
+      [id]
+    );
 
-  if (!rows[0]) {
-    throw new HttpError(404, 'Categoria não encontrada.');
+    if (!rows[0]) {
+      throw new HttpError(404, 'Categoria não encontrada.');
+    }
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error;
+    }
+
+    if (error.code === '23503') {
+      throw new HttpError(
+        409,
+        'Esta categoria está vinculada a ocorrências e não pode ser excluída.'
+      );
+    }
+
+    throw error;
   }
 }
