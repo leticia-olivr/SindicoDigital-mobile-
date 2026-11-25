@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "SindicoDigital API",
-    "description": "Coleção de testes da API SíndicoDigital.\n\nComo usar:\n1. Ajuste a variável baseUrl na aba Variables da coleção (local: http://localhost:3000; produção: URL da Vercel).\n2. Execute um dos requests de login. O token é salvo automaticamente na variável token.\n3. Os demais requests usam o token salvo pelo último login.\n\nUsuários de demonstração (senha Demo@123): admin@sindicodigital.test, sindica@sindicodigital.test, morador1@sindicodigital.test e morador2@sindicodigital.test.",
+    "description": "Coleção da API SíndicoDigital. Importa no Postman ou no Insomnia.\n\n1. Suba a API (npm run dev). baseUrl padrão: http://localhost:3000.\n2. Rode npm run db:migrate e npm run db:seed.\n3. Faça um login. O token fica na variável token.\n4. Login de SINDICO grava sindicoId. Login de MORADOR grava moradorUsuarioId.\n5. Listar apartamentos grava unidadeId e condominioId.\n6. Criar categoria, ocorrência e comunicado grava os ids usados nos requests seguintes.\n\nSenha dos usuários de demonstração: Demo@123.\nadmin@sindicodigital.test, sindica@sindicodigital.test, morador1@sindicodigital.test, morador2@sindicodigital.test.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -46,18 +46,86 @@
     {
       "key": "usuarioId",
       "value": ""
+    },
+    {
+      "key": "moradorUsuarioId",
+      "value": ""
+    },
+    {
+      "key": "sindicoId",
+      "value": ""
+    },
+    {
+      "key": "unidadeId",
+      "value": ""
+    },
+    {
+      "key": "condominioId",
+      "value": ""
+    },
+    {
+      "key": "moradorId",
+      "value": ""
+    },
+    {
+      "key": "apartamentoId",
+      "value": ""
+    },
+    {
+      "key": "categoriaId",
+      "value": ""
+    },
+    {
+      "key": "ocorrenciaId",
+      "value": ""
+    },
+    {
+      "key": "comunicadoId",
+      "value": ""
     }
   ],
   "item": [
+    {
+      "name": "0. Health",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "1. Autenticação",
       "item": [
         {
           "name": "Signup (cadastro de morador)",
           "request": {
-            "auth": {
-              "type": "noauth"
-            },
             "method": "POST",
             "header": [
               {
@@ -79,7 +147,10 @@
               "mode": "raw",
               "raw": "{\n  \"nome\": \"Novo Morador\",\n  \"email\": \"morador{{$timestamp}}@sindicodigital.test\",\n  \"senha\": \"{{senhaDemo}}\"\n}"
             },
-            "description": "Cria um usuário do tipo MORADOR. O e-mail usa {{$timestamp}} para ser único a cada execução."
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Cria um usuário MORADOR. O e-mail usa {{$timestamp}} para não repetir."
           },
           "event": [
             {
@@ -98,9 +169,6 @@
         {
           "name": "Login como MORADOR",
           "request": {
-            "auth": {
-              "type": "noauth"
-            },
             "method": "POST",
             "header": [
               {
@@ -121,6 +189,9 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{emailMorador}}\",\n  \"senha\": \"{{senhaDemo}}\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "event": [
@@ -132,7 +203,9 @@
                   "pm.test('Status 200', () => pm.response.to.have.status(200));",
                   "const dados = pm.response.json();",
                   "pm.collectionVariables.set('token', dados.token);",
-                  "pm.collectionVariables.set('meuId', dados.usuario.id);"
+                  "pm.collectionVariables.set('meuId', String(dados.usuario.id));",
+                  "if (dados.usuario.tipo === 'SINDICO') pm.collectionVariables.set('sindicoId', String(dados.usuario.id));",
+                  "if (dados.usuario.tipo === 'MORADOR') pm.collectionVariables.set('moradorUsuarioId', String(dados.usuario.id));"
                 ]
               }
             }
@@ -141,9 +214,6 @@
         {
           "name": "Login como SINDICO",
           "request": {
-            "auth": {
-              "type": "noauth"
-            },
             "method": "POST",
             "header": [
               {
@@ -164,7 +234,11 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{emailSindico}}\",\n  \"senha\": \"{{senhaDemo}}\"\n}"
-            }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Grava sindicoId. Faça este login antes de associar condomínio, e depois entre de novo como ADMIN."
           },
           "event": [
             {
@@ -175,7 +249,9 @@
                   "pm.test('Status 200', () => pm.response.to.have.status(200));",
                   "const dados = pm.response.json();",
                   "pm.collectionVariables.set('token', dados.token);",
-                  "pm.collectionVariables.set('meuId', dados.usuario.id);"
+                  "pm.collectionVariables.set('meuId', String(dados.usuario.id));",
+                  "if (dados.usuario.tipo === 'SINDICO') pm.collectionVariables.set('sindicoId', String(dados.usuario.id));",
+                  "if (dados.usuario.tipo === 'MORADOR') pm.collectionVariables.set('moradorUsuarioId', String(dados.usuario.id));"
                 ]
               }
             }
@@ -184,9 +260,6 @@
         {
           "name": "Login como ADMIN",
           "request": {
-            "auth": {
-              "type": "noauth"
-            },
             "method": "POST",
             "header": [
               {
@@ -207,6 +280,9 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{emailAdmin}}\",\n  \"senha\": \"{{senhaDemo}}\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "event": [
@@ -218,7 +294,9 @@
                   "pm.test('Status 200', () => pm.response.to.have.status(200));",
                   "const dados = pm.response.json();",
                   "pm.collectionVariables.set('token', dados.token);",
-                  "pm.collectionVariables.set('meuId', dados.usuario.id);"
+                  "pm.collectionVariables.set('meuId', String(dados.usuario.id));",
+                  "if (dados.usuario.tipo === 'SINDICO') pm.collectionVariables.set('sindicoId', String(dados.usuario.id));",
+                  "if (dados.usuario.tipo === 'MORADOR') pm.collectionVariables.set('moradorUsuarioId', String(dados.usuario.id));"
                 ]
               }
             }
@@ -251,12 +329,52 @@
               }
             }
           ]
+        },
+        {
+          "name": "Login com senha inválida",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailAdmin}}\",\n  \"senha\": \"senha-errada\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
       "name": "2. Usuários",
-      "description": "Faça login como ADMIN ou SINDICO antes de executar esta pasta. Com o login de MORADOR, as rotas de gestão retornam 403.",
+      "description": "Login de ADMIN ou SINDICO. MORADOR recebe 403 nas rotas de gestão. Criar morador exige unidadeId: rode antes Listar apartamentos.",
       "item": [
         {
           "name": "Listar usuários",
@@ -286,7 +404,7 @@
           ]
         },
         {
-          "name": "Criar usuário",
+          "name": "Criar usuário morador",
           "request": {
             "method": "POST",
             "header": [
@@ -306,9 +424,9 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Usuário Criado\",\n  \"email\": \"criado{{$timestamp}}@sindicodigital.test\",\n  \"senha\": \"{{senhaDemo}}\",\n  \"tipo\": \"MORADOR\"\n}"
+              "raw": "{\n  \"nome\": \"Usuário Criado\",\n  \"email\": \"criado{{$timestamp}}@sindicodigital.test\",\n  \"senha\": \"{{senhaDemo}}\",\n  \"tipo\": \"MORADOR\",\n  \"unidadeId\": \"{{unidadeId}}\"\n}"
             },
-            "description": "O id do usuário criado é salvo na variável usuarioId, usada nos próximos requests."
+            "description": "Exige unidadeId. Só ADMIN cria SINDICO ou ADMIN. SINDICO só cria morador em condomínio que administra."
           },
           "event": [
             {
@@ -317,7 +435,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status 201', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('usuarioId', pm.response.json().id);"
+                  "pm.collectionVariables.set('usuarioId', String(pm.response.json().id));"
                 ]
               }
             }
@@ -375,7 +493,7 @@
               "mode": "raw",
               "raw": "{\n  \"nome\": \"Usuário Atualizado\"\n}"
             },
-            "description": "Envie apenas os campos que serão alterados: nome, email, senha ou tipo. Somente ADMIN altera o tipo."
+            "description": "Campos aceitos: nome, email, senha, tipo. Só ADMIN altera o tipo."
           },
           "event": [
             {
@@ -385,6 +503,36 @@
                 "exec": [
                   "pm.test('Status 200', () => pm.response.to.have.status(200));",
                   "pm.test('Nome atualizado', () => pm.expect(pm.response.json().nome).to.eql('Usuário Atualizado'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Minhas unidades",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/me/unidades",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "me",
+                "unidades"
+              ]
+            },
+            "description": "Somente MORADOR. Faça login como morador antes."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
                 ]
               }
             }
@@ -404,6 +552,959 @@
                 "usuarios",
                 "{{usuarioId}}"
               ]
+            },
+            "description": "Apaga o usuário criado neste fluxo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Apartamentos",
+      "description": "Exige SINDICO ou ADMIN. Listar grava unidadeId, condominioId e, se houver morador, moradorId.",
+      "item": [
+        {
+          "name": "Listar apartamentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apartamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apartamentos"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const lista = pm.response.json();",
+                  "if (Array.isArray(lista) && lista[0]) {",
+                  "  pm.collectionVariables.set('unidadeId', String(lista[0].id));",
+                  "  pm.collectionVariables.set('condominioId', String(lista[0].condominio_id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar apartamento por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apartamentos/{{unidadeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apartamentos",
+                "{{unidadeId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar apartamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/apartamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apartamentos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"condominio_id\": \"{{condominioId}}\",\n  \"bloco\": \"Z\",\n  \"numero\": \"{{$timestamp}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('apartamentoId', String(pm.response.json().id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar apartamento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/apartamentos/{{apartamentoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apartamentos",
+                "{{apartamentoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bloco\": \"Y\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar moradores do apartamento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apartamentos/{{unidadeId}}/moradores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apartamentos",
+                "{{unidadeId}}",
+                "moradores"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const lista = pm.response.json();",
+                  "if (Array.isArray(lista) && lista[0]) pm.collectionVariables.set('moradorId', String(lista[0].id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Associar morador ao apartamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/apartamentos/{{unidadeId}}/moradores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apartamentos",
+                "{{unidadeId}}",
+                "moradores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"morador_id\": \"{{moradorId}}\"\n}"
+            },
+            "description": "morador_id é o id da tabela moradores, não o id do usuário. 409 se o vínculo já existe."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 ou 409', () => pm.expect([201, 409]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Remover morador do apartamento",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apartamentos/{{unidadeId}}/moradores/{{moradorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apartamentos",
+                "{{unidadeId}}",
+                "moradores",
+                "{{moradorId}}"
+              ]
+            },
+            "description": "Remove o vínculo. Não apague se quiser manter o seed."
+          }
+        },
+        {
+          "name": "Excluir apartamento criado",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/apartamentos/{{apartamentoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "apartamentos",
+                "{{apartamentoId}}"
+              ]
+            },
+            "description": "Apaga só o apartamento cadastrado neste fluxo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Unidades e usuários",
+      "description": "Vínculo entre usuário MORADOR e unidade. Login de ADMIN ou SINDICO do condomínio.",
+      "item": [
+        {
+          "name": "Listar moradores da unidade",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/unidades/{{unidadeId}}/moradores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "unidades",
+                "{{unidadeId}}",
+                "moradores"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Associar usuário à unidade",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/unidades/{{unidadeId}}/moradores/{{moradorUsuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "unidades",
+                "{{unidadeId}}",
+                "moradores",
+                "{{moradorUsuarioId}}"
+              ]
+            },
+            "description": "moradorUsuarioId vem do login como MORADOR. O usuário precisa ser do tipo MORADOR."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 ou 409', () => pm.expect([201, 409]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Desassociar usuário da unidade",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/unidades/{{unidadeId}}/moradores/{{moradorUsuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "unidades",
+                "{{unidadeId}}",
+                "moradores",
+                "{{moradorUsuarioId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Síndicos e condomínios",
+      "description": "GET /me/condominios exige login de SINDICO. POST e DELETE exigem ADMIN. Faça login de SINDICO (grava sindicoId) e depois login de ADMIN.",
+      "item": [
+        {
+          "name": "Listar condomínios do síndico",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sindicos/me/condominios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sindicos",
+                "me",
+                "condominios"
+              ]
+            },
+            "description": "Troque o token para o síndico antes deste request."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Associar síndico ao condomínio",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sindicos/{{sindicoId}}/condominios/{{condominioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sindicos",
+                "{{sindicoId}}",
+                "condominios",
+                "{{condominioId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 ou 409', () => pm.expect([201, 409]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Desassociar síndico do condomínio",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sindicos/{{sindicoId}}/condominios/{{condominioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sindicos",
+                "{{sindicoId}}",
+                "condominios",
+                "{{condominioId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Categorias",
+      "description": "Listar e consultar: qualquer autenticado. Criar, atualizar e excluir: ADMIN ou SINDICO.",
+      "item": [
+        {
+          "name": "Criar categoria",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Vazamento {{$timestamp}}\",\n  \"descricao\": \"Problema hidráulico\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('categoriaId', String(pm.response.json().categoria.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar categorias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const lista = pm.response.json();",
+                  "if (!pm.collectionVariables.get('categoriaId') && Array.isArray(lista) && lista[0]) {",
+                  "  pm.collectionVariables.set('categoriaId', String(lista[0].id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar categoria por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/{{categoriaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias",
+                "{{categoriaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar categoria",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/{{categoriaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias",
+                "{{categoriaId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Vazamento atualizado {{$timestamp}}\",\n  \"descricao\": \"Descrição atualizada\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Excluir categoria",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/{{categoriaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias",
+                "{{categoriaId}}"
+              ]
+            },
+            "description": "Falha com 409 se alguma ocorrência usar esta categoria."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Ocorrências",
+      "description": "Exige autenticação. O morador só registra ocorrência em unidade à qual está vinculado. ADMIN vê todas. SINDICO vê as do condomínio que administra.",
+      "item": [
+        {
+          "name": "Registrar ocorrência",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ocorrencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ocorrencias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unidade_id\": \"{{unidadeId}}\",\n  \"categoria_id\": \"{{categoriaId}}\",\n  \"titulo\": \"Vazamento na cozinha\",\n  \"descricao\": \"Água saindo embaixo da pia\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('ocorrenciaId', String(pm.response.json().ocorrencia.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar ocorrências permitidas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocorrencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ocorrencias"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar ocorrência por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocorrencias/{{ocorrenciaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ocorrencias",
+                "{{ocorrenciaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar ocorrência",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ocorrencias/{{ocorrenciaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ocorrencias",
+                "{{ocorrenciaId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"EM_ANDAMENTO\",\n  \"descricao\": \"Manutenção agendada\"\n}"
+            },
+            "description": "status: ABERTA, EM_ANDAMENTO ou CONCLUIDA. Quem não tem acesso à unidade recebe 403."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Excluir ocorrência",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ocorrencias/{{ocorrenciaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ocorrencias",
+                "{{ocorrenciaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. Comunicados",
+      "description": "Leitura: qualquer autenticado. Criar, editar e excluir: SINDICO ou ADMIN, e só o autor edita ou exclui.",
+      "item": [
+        {
+          "name": "Criar comunicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/comunicados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comunicados"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Assembleia {{$timestamp}}\",\n  \"conteudo\": \"Reunião no salão às 19h.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('comunicadoId', String(pm.response.json().id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar comunicados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/comunicados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comunicados"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar comunicados do autor logado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/comunicados/meus",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comunicados",
+                "meus"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar comunicado por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/comunicados/{{comunicadoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comunicados",
+                "{{comunicadoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar comunicado",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/comunicados/{{comunicadoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comunicados",
+                "{{comunicadoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Assembleia remarcada\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Excluir comunicado",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/comunicados/{{comunicadoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comunicados",
+                "{{comunicadoId}}"
+              ]
             }
           },
           "event": [
@@ -421,7 +1522,7 @@
       ]
     },
     {
-      "name": "3. Encerrar sessão",
+      "name": "9. Sessão",
       "item": [
         {
           "name": "Logout",
@@ -438,7 +1539,7 @@
                 "logout"
               ]
             },
-            "description": "Revoga o token atual. Depois do logout, o mesmo token passa a receber 401."
+            "description": "Revoga o token atual. O mesmo token passa a receber 401."
           },
           "event": [
             {
@@ -447,6 +1548,65 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me com token revogado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Rode depois do logout, sem fazer login de novo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rota protegida sem token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categorias"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
                 ]
               }
             }
