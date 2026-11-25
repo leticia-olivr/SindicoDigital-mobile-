@@ -1,5 +1,6 @@
 ﻿import { Router } from 'express';
 import authRoutes from './auth.routes.js';
+import comunicadosRoutes from './comunicados.routes.js';
 import usuariosRoutes from './usuarios.routes.js';
 import sindicosRoutes from './sindicos.routes.js';
 import unidadesRoutes from './unidades.routes.js';
@@ -23,5 +24,6 @@ router.use('/unidades', unidadesRoutes);
 router.use('/categorias', categoriasRoutes);
 router.use('/ocorrencias', ocorrenciasRoutes);
 router.use('/apartamentos', apartamentosRoutes);
+router.use('/comunicados', comunicadosRoutes);
 
 export default router;
