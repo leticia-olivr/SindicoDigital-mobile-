@@ -1,7 +1,8 @@
 import { registrarOcorrencia as salvarOcorrencia, 
   listarOcorrenciasPermitida, 
   consultarOcorrenciaPorId,
-  atualizarOcorrencia
+  atualizarOcorrencia,
+  excluirOcorrencia
 } from '../services/ocorrencias.service.js';
 import { HttpError } from '../utils/http-error.js';
 
@@ -89,6 +90,20 @@ export async function atualizarOcorrenciaController(req, res) {
 
   return res.status(200).json({
     message: 'Ocorrência atualizada com sucesso.',
+    ocorrencia
+  });
+}
+
+export async function excluirOcorrenciaController(req, res) {
+  const ocorrenciaId = validarId(req.params.id, 'ID da ocorrência');
+
+  const ocorrencia = await excluirOcorrencia(
+    ocorrenciaId,
+    req.usuario
+  );
+
+  return res.status(200).json({
+    message: 'Ocorrência excluída com sucesso.',
     ocorrencia
   });
 }

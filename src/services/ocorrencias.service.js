@@ -204,3 +204,22 @@ export async function atualizarOcorrencia(
 
   return rows[0];
 }
+
+export async function excluirOcorrencia(ocorrenciaId, ator) {
+  const ocorrencia = await consultarOcorrenciaPorId(
+    ocorrenciaId,
+    ator
+  );
+
+  if (ator.tipo === 'MORADOR' && ocorrencia.usuario_id !== ator.id) {
+    throw new HttpError(403, 'Você não pode excluir uma ocorrência registrada por outro morador.');
+  }
+
+  await pool.query(
+    `DELETE FROM ocorrencias
+     WHERE id = $1`,
+    [ocorrenciaId]
+  );
+
+  return ocorrencia;
+}

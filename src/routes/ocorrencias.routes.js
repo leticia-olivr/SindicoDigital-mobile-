@@ -1,8 +1,10 @@
 import { Router } from 'express';
-import { registrarOcorrencia, 
+import { 
+    registrarOcorrencia, 
     listarOcorrencias, 
     consultarOcorrencia,
-    atualizarOcorrenciaController
+    atualizarOcorrenciaController,
+    excluirOcorrenciaController
 } from '../controllers/ocorrencias.controller.js';
 import { autenticar } from '../middlewares/auth.middleware.js';
 
@@ -13,5 +15,6 @@ router.post('/', registrarOcorrencia);
 router.get('/', listarOcorrencias);
 router.get('/:id', consultarOcorrencia);
 router.put('/:id', atualizarOcorrenciaController);
+router.delete('/:id', excluirOcorrenciaController);
 
 export default router;
