@@ -18,3 +18,13 @@ export async function criarCategoria(nome, descricao) {
     throw error;
   }
 }
+
+export async function listarCategorias() {
+  const { rows } = await pool.query(
+    `SELECT id, nome, descricao, criado_em
+     FROM categorias_ocorrencias
+     ORDER BY nome`
+  );
+
+  return rows;
+}

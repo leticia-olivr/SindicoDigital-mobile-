@@ -19,3 +19,10 @@ export async function criarCategoria(req, res) {
     categoria
   });
 }
+
+import { listarCategorias as buscarCategorias } from '../services/categorias.service.js';
+
+export async function listarCategorias(req, res) {
+  const categorias = await buscarCategorias();
+  res.status(200).json(categorias);
+}
