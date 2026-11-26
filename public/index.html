@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#153d35">
+    <title>Criar conta | SíndicoDigital</title>
+    <link rel="stylesheet" href="/auth.css">
+    <script src="/signup.js" defer></script>
+  </head>
+  <body>
+    <main class="auth-layout">
+      <section class="auth-card" aria-labelledby="page-title">
+        <a class="brand" href="/" aria-label="SíndicoDigital, início">
+          <span class="brand-mark" aria-hidden="true">S</span>
+          <span>SíndicoDigital</span>
+        </a>
+
+        <div class="intro">
+          <p class="eyebrow">Acesso do morador</p>
+          <h1 id="page-title">Crie sua conta</h1>
+          <p>Cadastre seus dados para acessar os serviços do seu condomínio.</p>
+        </div>
+
+        <div class="notice notice-info" role="note">
+          Após criar a conta, se nenhuma unidade estiver vinculada, solicite o
+          vínculo à administração do condomínio.
+        </div>
+
+        <div class="notice notice-error" id="form-message" role="alert" hidden></div>
+
+        <form id="signup-form" novalidate>
+          <label for="nome">Nome completo</label>
+          <input
+            id="nome"
+            name="nome"
+            type="text"
+            autocomplete="name"
+            minlength="2"
+            maxlength="100"
+            required
+          >
+
+          <label for="email">E-mail</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            maxlength="254"
+            required
+          >
+
+          <label for="senha">Senha</label>
+          <input
+            id="senha"
+            name="senha"
+            type="password"
+            autocomplete="new-password"
+            minlength="6"
+            required
+          >
+          <p class="field-help">Use pelo menos 6 caracteres.</p>
+
+          <label for="confirmacao-senha">Confirme sua senha</label>
+          <input
+            id="confirmacao-senha"
+            name="confirmacaoSenha"
+            type="password"
+            autocomplete="new-password"
+            minlength="6"
+            required
+          >
+
+          <button class="button" type="submit" id="submit-button">
+            Criar conta
+          </button>
+        </form>
+
+        <p class="form-footer">
+          Já tem uma conta? <a href="/login">Entrar</a>
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
