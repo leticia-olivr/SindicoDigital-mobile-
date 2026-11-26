@@ -40,9 +40,7 @@ form.addEventListener('submit', async (event) => {
     }
 
     sessionStorage.setItem('token', result.token);
-    message.className = 'notice notice-success';
-    message.textContent = 'Login realizado com sucesso.';
-    message.hidden = false;
+    window.location.assign('/painel/ocorrencias');
   } catch {
     message.textContent =
       'Não foi possível conectar à API. Verifique sua conexão e tente novamente.';
