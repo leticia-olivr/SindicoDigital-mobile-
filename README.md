@@ -89,6 +89,15 @@ Faça login e envie o token recebido no cabeçalho `Authorization: Bearer <token
 | `GET` | `/auth/me` | Retorna o usuário autenticado |
 | `POST` | `/auth/logout` | Revoga o token atual |
 
+## Interface web de autenticação
+
+O servidor disponibiliza uma interface de cadastro e login:
+
+- `/cadastro` (também disponível na página inicial) cria uma conta de morador com nome, e-mail, senha e confirmação de senha.
+- O cadastro envia `nome`, `email` e `senha` para `POST /auth/signup`; erros de validação e e-mail já cadastrado são exibidos no formulário.
+- Após o cadastro, a pessoa é encaminhada para `/login`. Como o cadastro não vincula uma unidade, a tela informa que o morador deve solicitar o vínculo à administração do condomínio.
+- `/login` autentica usando `POST /auth/login`.
+
 ## Usuários
 
 | Método | Rota | Permissão |
