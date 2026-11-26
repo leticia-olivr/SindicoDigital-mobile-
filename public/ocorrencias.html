@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#153d35">
+    <title>Ocorrências | SíndicoDigital</title>
+    <link rel="stylesheet" href="/auth.css">
+    <link rel="stylesheet" href="/painel.css">
+    <script src="/painel-comum.js" defer></script>
+    <script src="/ocorrencias.js" defer></script>
+  </head>
+  <body>
+    <main class="painel-layout">
+      <section class="painel-card" aria-labelledby="page-title">
+        <a class="brand" href="/painel/ocorrencias" aria-label="SíndicoDigital, ocorrências">
+          <span class="brand-mark" aria-hidden="true">S</span>
+          <span>SíndicoDigital</span>
+        </a>
+
+        <div class="intro">
+          <p class="eyebrow">Painel</p>
+          <h1 id="page-title">Ocorrências</h1>
+          <p>Acompanhe as ocorrências que você pode acessar.</p>
+        </div>
+
+        <div class="estado" id="estado-carregando" role="status">
+          Carregando ocorrências...
+        </div>
+
+        <div class="notice notice-error" id="estado-erro" role="alert" hidden>
+          <p id="erro-texto"></p>
+          <button class="button button-secondary" type="button" id="tentar-novamente">
+            Tentar novamente
+          </button>
+        </div>
+
+        <div class="estado" id="estado-vazio" hidden>
+          Nenhuma ocorrência para exibir no momento.
+        </div>
+
+        <ul class="ocorrencias-lista" id="lista" hidden></ul>
+      </section>
+    </main>
+  </body>
+</html>

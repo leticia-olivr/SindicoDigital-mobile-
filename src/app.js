@@ -25,6 +25,12 @@ app.get('/cadastro', (req, res) => {
 app.get('/login', (req, res) => {
   res.sendFile(path.join(publicDir, 'login.html'));
 });
+app.get('/painel/ocorrencias', (req, res) => {
+  res.sendFile(path.join(publicDir, 'ocorrencias.html'));
+});
+app.get('/painel/ocorrencias/:id', (req, res) => {
+  res.sendFile(path.join(publicDir, 'ocorrencia.html'));
+});
 app.use(errorMiddleware);
 
 export default app;
