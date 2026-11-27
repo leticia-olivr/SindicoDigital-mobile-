@@ -89,14 +89,6 @@ Faça login e envie o token recebido no cabeçalho `Authorization: Bearer <token
 | `GET` | `/auth/me` | Retorna o usuário autenticado |
 | `POST` | `/auth/logout` | Revoga o token atual |
 
-## Interface web de autenticação
-
-O servidor disponibiliza uma interface de cadastro e login:
-
-- `/cadastro` (também disponível na página inicial) cria uma conta de morador com nome, e-mail, senha e confirmação de senha.
-- O cadastro envia `nome`, `email` e `senha` para `POST /auth/signup`; erros de validação e e-mail já cadastrado são exibidos no formulário.
-- Após o cadastro, a pessoa é encaminhada para `/login`. Como o cadastro não vincula uma unidade, a tela informa que o morador deve solicitar o vínculo à administração do condomínio.
-- `/login` autentica usando `POST /auth/login` e, em caso de sucesso, encaminha para `/painel/ocorrencias`.
 ## Usuários
 
 | Método | Rota | Permissão |
@@ -112,18 +104,3 @@ No `PUT`, envie apenas os campos que serão alterados: `nome`, `email`, `senha` 
 ## Segurança
 
 Nunca publique o arquivo `.env` nem credenciais ou strings de conexão.
-
-## Interface web de ocorrências
-
-O servidor também disponibiliza páginas para consultar ocorrências. Elas usam o token que o login guarda em `sessionStorage` (chave `token`) e consomem as rotas da API, que não mudam:
-
-| Página | Consome | O que mostra |
-|---|---|---|
-| `/painel/ocorrencias` | `GET /ocorrencias` | Lista com título, categoria, unidade (bloco e número), data e status |
-| `/painel/ocorrencias/:id` | `GET /ocorrencias/:id` | Detalhe com a descrição completa |
-
-- As páginas usam caminhos com o prefixo `/painel` para não colidir com as rotas da API `/ocorrencias`.
-- Status exibidos em português: `ABERTA` (Aberta), `EM_ANDAMENTO` (Em andamento) e `CONCLUIDA` (Concluída). Datas seguem o formato pt-BR.
-- Cada tela mostra carregamento, lista vazia (mensagem neutra, pois a API não informa se a conta está sem unidade vinculada) e erro de conexão ou da API, com o botão "Tentar novamente".
-- Sem token, ou com resposta `401`, a pessoa é encaminhada para `/login`. Respostas `403` e `404` exibem mensagens específicas.
-- Os arquivos ficam em `public/`: `ocorrencias.html` e `ocorrencias.js` (lista), `ocorrencia.html` e `ocorrencia.js` (detalhe), `painel-comum.js` (token, datas, status e tratamento de erros) e `painel.css`.
