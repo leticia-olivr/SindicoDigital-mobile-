@@ -172,15 +172,41 @@ export async function atualizarUsuario(id, campos) {
 }
 
 export async function excluirUsuario(id) {
+  const client = await pool.connect();
+
   try {
-    const { rowCount } = await pool.query(
+    await client.query('BEGIN');
+
+    await client.query('DELETE FROM ocorrencias WHERE usuario_id = $1', [id]);
+    await client.query('DELETE FROM comunicados WHERE autor_id = $1', [id]);
+    await client.query('DELETE FROM usuarios_unidades WHERE usuario_id = $1', [id]);
+    await client.query(
+      'DELETE FROM sindicos_condominios WHERE sindico_id = $1',
+      [id]
+    );
+    await client.query(
+      'DELETE FROM usuarios_condominios WHERE usuario_id = $1',
+      [id]
+    );
+
+    const { rowCount } = await client.query(
       'DELETE FROM usuarios WHERE id = $1',
       [id]
     );
 
+    await client.query('COMMIT');
+
     return rowCount > 0;
   } catch (error) {
+    try {
+      await client.query('ROLLBACK');
+    } catch {
+      // Mantém o erro original caso o rollback também falhe.
+    }
+
     tratarErroDoBanco(error);
+  } finally {
+    client.release();
   }
 }
 
