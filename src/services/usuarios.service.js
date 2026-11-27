@@ -77,6 +77,13 @@ export async function criarMoradorComUnidade({
       [moradorId, unidadeId]
     );
 
+    // 4. Registra o mesmo vínculo na tabela lida por ocorrências e unidades.
+    await client.query(
+      `INSERT INTO usuarios_unidades (usuario_id, unidade_id, tipo_usuario)
+       VALUES ($1, $2, 'MORADOR')`,
+      [usuario.id, unidadeId]
+    );
+
     await client.query('COMMIT');
 
     return usuario;

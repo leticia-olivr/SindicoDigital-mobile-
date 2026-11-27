@@ -1,5 +1,6 @@
 import { pool } from '../config/database.js';
 import { HttpError } from '../utils/http-error.js';
+import { unidadesDoUsuarioSql } from './unidades.service.js';
 
 async function validarAcessoUnidade(unidadeId, ator) {
   const { rows } = await pool.query(
@@ -18,8 +19,8 @@ async function validarAcessoUnidade(unidadeId, ator) {
   if (ator.tipo === 'MORADOR') {
     const vinculo = await pool.query(
       `SELECT 1
-       FROM usuarios_unidades
-       WHERE usuario_id = $1 AND unidade_id = $2`,
+       FROM (${unidadesDoUsuarioSql('$1')}) AS vinculos
+       WHERE unidade_id = $2`,
       [ator.id, unidadeId]
     );
 
@@ -111,8 +112,7 @@ export async function listarOcorrenciasPermitidas(ator) {
       JOIN categorias_ocorrencias c ON c.id = o.categoria_id
       JOIN unidades u ON u.id = o.unidade_id
       JOIN usuarios usr ON usr.id = o.usuario_id
-      JOIN usuarios_unidades uu ON uu.unidade_id = o.unidade_id
-      WHERE uu.usuario_id = $1
+      WHERE o.unidade_id IN (${unidadesDoUsuarioSql('$1')})
       ORDER BY o.criado_em DESC
     `;
 
@@ -180,6 +180,22 @@ export async function atualizarOcorrencia(
     ator
   );
 
+  if (ator.tipo === 'MORADOR') {
+    if (String(ocorrenciaAtual.usuario_id) !== String(ator.id)) {
+      throw new HttpError(
+        403,
+        'Você não pode editar uma ocorrência registrada por outro morador.'
+      );
+    }
+
+    if (dados.status !== undefined) {
+      throw new HttpError(
+        403,
+        'Somente síndicos e administradores podem alterar o status.'
+      );
+    }
+  }
+
   const titulo = dados.titulo ?? ocorrenciaAtual.titulo;
   const descricao = dados.descricao ?? ocorrenciaAtual.descricao;
   const status = dados.status ?? ocorrenciaAtual.status;
@@ -211,7 +227,7 @@ export async function excluirOcorrencia(ocorrenciaId, ator) {
     ator
   );
 
-  if (ator.tipo === 'MORADOR' && ocorrencia.usuario_id !== ator.id) {
+  if (ator.tipo === 'MORADOR' && String(ocorrencia.usuario_id) !== String(ator.id)) {
     throw new HttpError(403, 'Você não pode excluir uma ocorrência registrada por outro morador.');
   }
 
