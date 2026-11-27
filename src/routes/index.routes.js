@@ -7,6 +7,7 @@ import unidadesRoutes from './unidades.routes.js';
 import categoriasRoutes from './categorias.routes.js';
 import ocorrenciasRoutes from './ocorrencias.routes.js';
 import apartamentosRoutes from './apartamentos.routes.js';
+import condominiosRoutes from './condominios.routes.js';
 
 const router = Router();
 
@@ -24,6 +25,7 @@ router.use('/unidades', unidadesRoutes);
 router.use('/categorias', categoriasRoutes);
 router.use('/ocorrencias', ocorrenciasRoutes);
 router.use('/apartamentos', apartamentosRoutes);
+router.use('/condominios', condominiosRoutes);
 router.use('/comunicados', comunicadosRoutes);
 
 export default router;
